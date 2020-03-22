@@ -1,15 +1,21 @@
 const loggedOutLinks = document.querySelectorAll(".logged-out");
 const loggedInLinks = document.querySelectorAll(".logged-in");
 const accountDetails = document.querySelector('.account-details');
+const accountParty = document.querySelector('.account-extras');
 
 const setupUI = (user) => {
     if(user) {
-        
         // account info
-        const html = `
-            <div>Logged in as ${user.email}</div>
+        db.collection("users").doc(user.uid).get().then(doc => {
+            const document = doc.data();
+            const hi = `
+                <p>Logged in as ${user.email}</p>
             `;
-        accountDetails.innerHTML = html;
+            accountDetails.innerHTML = hi;
+            partyInfo(document);
+
+        })
+        
         //toggle UI elements
         //cycling through all the logged in links and setting their style to block
         loggedInLinks.forEach(item => item.style.display = "block");
@@ -18,9 +24,35 @@ const setupUI = (user) => {
     else {
         // clear account info
         accountDetails.innerHTML = '';
+        accountParty.innerHTML = '';
         //toggle UI elements
         loggedInLinks.forEach(item => item.style.display = "none");
         loggedOutLinks.forEach(item => item.style.display = "block");
+    }
+}
+
+//setup party information
+const partyInfo = (document) => {
+    if(document.party === 1) {
+        const html = `
+            <p>Here are some links to get you started DEMOCRAT</p>
+            <div>Last time you took the quiz you answered mostly democratic</div>
+        `;
+        console.log("woot")
+        accountParty.innerHTML = html;
+    }
+    else if(document.party === 2) {
+        const html = `
+            <p>Here are some links to get you started REPUBLICAN</p>
+            <div>Last time you took the quiz you answered mostly republican</div>
+        `;
+        accountParty.innerHTML = html;
+    }
+    else if(document.party === 3) {
+        const html = `
+            <p>Here are some links to get you answered equally democratic and republican</p>
+        `;
+        accountParty.innerHTML = html;
     }
 }
 
@@ -38,12 +70,12 @@ const setUpQuiz = (data) => {
             </div>
             <div class = "answers">
                 <label>
-                    <input name= ${quiz.gName} type="radio" value = "0"/>
+                    <input name= ${quiz.gName} type="radio" value = "0" required = "required"/>
                     <span>${quiz.o[0]}</span>
                 </label>
         
                 <label>
-                    <input name= ${quiz.gName} type="radio" value = "1" />
+                    <input name= ${quiz.gName} type="radio" value = "1" required ="required"/>
                     <span>${quiz.o[1]}</span>
                 </label>
 
@@ -62,6 +94,7 @@ const setUpQuiz = (data) => {
     }
 };
 
+
 const showResults = (data, quizList, resultsContainer, user) => {
     var answerContainer = quizList.querySelector('.answers');
     var numDem = 0;
@@ -79,17 +112,20 @@ const showResults = (data, quizList, resultsContainer, user) => {
         }
         
     });
-    var party = "";
+    var party = 0;
     if (numDem > numRepub) {
-        party = "mostly democratic";
+        party = 1;
+        resultsContainer.innerHTML = 'You answered mostly Democratic';
     }
     else if (numRepub > numDem) {
-        party = "mostly republican"
+        party = 2;
+        resultsContainer.innerHTML = 'You answered mostly Republican';
     }
     else if (numRepub === numDem){
-        party = "equally democratic and republican"
+        party = 3;
+        resultsContainer.innerHTML = 'You answered equally democratic and republican';
     }
-        resultsContainer.innerHTML = 'You answered ' + party;
+        
 
         db.collection('users').doc(user.uid).set({
             party: party,
@@ -98,6 +134,7 @@ const showResults = (data, quizList, resultsContainer, user) => {
           });
         
 };
+
 
 
 
