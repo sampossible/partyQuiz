@@ -2,26 +2,31 @@ const loggedOutLinks = document.querySelectorAll(".logged-out");
 const loggedInLinks = document.querySelectorAll(".logged-in");
 const accountDetails = document.querySelector('.account-details');
 const accountParty = document.querySelector('.account-extras');
+const adminItems = document.querySelectorAll('.admin');
 
 const setupUI = (user) => {
     if(user) {
+        if(user.admin) {
+            adminItems.forEach(item => item.style.display = "block");
+        }
         // account info
         db.collection("users").doc(user.uid).get().then(doc => {
             const document = doc.data();
-            const hi = `
+            const html = `
                 <p>Logged in as ${user.email}</p>
+                <div class = "pink-text">${user.admin ? 'Admin' : ''}</div>
             `;
-            accountDetails.innerHTML = hi;
+            accountDetails.innerHTML = html;
             partyInfo(document);
 
         })
-        
         //toggle UI elements
         //cycling through all the logged in links and setting their style to block
         loggedInLinks.forEach(item => item.style.display = "block");
         loggedOutLinks.forEach(item => item.style.display = "none");
     }
     else {
+        adminItems.forEach(item => item.style.display = 'none');
         // clear account info
         accountDetails.innerHTML = '';
         accountParty.innerHTML = '';
@@ -35,22 +40,40 @@ const setupUI = (user) => {
 const partyInfo = (document) => {
     if(document.party === 1) {
         const html = `
-            <p>Here are some links to get you started DEMOCRAT</p>
-            <div>Last time you took the quiz you answered mostly democratic</div>
+            <div>
+            <h6>Last time you took the quiz you answered mostly <strong>democratic</strong><h6>
+            <p>Here are some links to keep you informed</p>
+            <ul>
+                <li><a href = "https://democrats.org">Democrats.org</a><li>
+                <li><a href = "https://www.demconvention.com/">2020 Democratic Convention Link</a><li>
+            <ul>
+            </div>
         `;
-        console.log("woot")
         accountParty.innerHTML = html;
     }
     else if(document.party === 2) {
         const html = `
-            <p>Here are some links to get you started REPUBLICAN</p>
-            <div>Last time you took the quiz you answered mostly republican</div>
+            <div>
+            <h6>Last time you took the quiz you answered mostly <strong>republican</strong></h6>
+            <p>Here are some links to keep you informed</p>
+            <ul>
+                <li><a href = "https://www.gop.com/platform/">Republican National Committee</a><li>
+                <li><a href = "https://politicalresources.com/for-political-professionals/democratic-and-republican-state-parties-2">Republican State Parties</a><li>
+            </ul>
+            </div>
         `;
         accountParty.innerHTML = html;
     }
     else if(document.party === 3) {
         const html = `
-            <p>Here are some links to get you answered equally democratic and republican</p>
+            <p>Last time you took the quiz you answered <strong>equally democratic and republican</strong></p>
+            <p>Here are some links to keep you informed</p>
+            <ul>
+                <li><a href = "https://democrats.org">Democrats.org</a><li>
+                <li><a href = "https://www.demconvention.com/">2020 Democratic Convention Link</a><li>
+                <li><a href = "https://www.gop.com/platform/">Republican National Committee</a><li>
+                <li><a href = "https://politicalresources.com/for-political-professionals/democratic-and-republican-state-parties-2">Republican State Parties</a><li>
+            </ul>
         `;
         accountParty.innerHTML = html;
     }
@@ -60,7 +83,7 @@ const partyInfo = (document) => {
 //when we call in function we take in the data that we receive
 const setUpQuiz = (data) => {
     if(data.length) {
-    let html = "";
+    let html = "<h1 class = 'teal-text'>Welcome to the Party Quiz<h1><h6>Answer the questions below to see how your stances on important issues align with the Democratic or Republican Party</h6>";
     
     data.forEach(doc => {
         const quiz = doc.data();
@@ -68,7 +91,7 @@ const setUpQuiz = (data) => {
             <div class = "question">
                 <h5>${quiz.q}</h5>
             </div>
-            <div class = "answers">
+            <div class = "answers" style = "margin-bottom: 40px;">
                 <label>
                     <input name= ${quiz.gName} type="radio" value = "0" required = "required"/>
                     <span>${quiz.o[0]}</span>
@@ -85,12 +108,10 @@ const setUpQuiz = (data) => {
         html += div
 
     });
-    
-
     quizList.innerHTML = html;
     }
     else {
-        quizList.innerHTML = '<h5 class = "center-align">Login to View Quiz</h5>'
+        quizList.innerHTML = "<h1 style = 'text-align: center;'> Sign-In or Login to View Quiz!/h1>"
     }
 };
 
@@ -104,15 +125,14 @@ const showResults = (data, quizList, resultsContainer, user) => {
         const gName = quiz.gName;
         const userAnswer = (answerContainer.querySelector('input[name='+gName+']:checked')||{}).value;
         console.log(userAnswer);
-        if(parseInt(userAnswer, 10) === quiz.D) {
+        if(parseInt(userAnswer, 10) == quiz.D) {
             numDem++
         }
-        else if (parseInt(userAnswer, 10)===quiz.R) {
+        else if (parseInt(userAnswer, 10)== quiz.R) {
             numRepub++
         }
-        
     });
-    var party = 0;
+    var party;
     if (numDem > numRepub) {
         party = 1;
         resultsContainer.innerHTML = 'You answered mostly Democratic';
@@ -125,8 +145,6 @@ const showResults = (data, quizList, resultsContainer, user) => {
         party = 3;
         resultsContainer.innerHTML = 'You answered equally democratic and republican';
     }
-        
-
         db.collection('users').doc(user.uid).set({
             party: party,
             numDem: numDem,
@@ -138,13 +156,16 @@ const showResults = (data, quizList, resultsContainer, user) => {
 
 
 
+
 // graph js
 const showGraph = (user => {
     db.collection('users').doc(user.uid).get().then(doc => {
         var chart = new CanvasJS.Chart("chartContainer", {
             animationEnabled: true,
+            backgroundColor: "#eee",
             title: {
-                text: "User's Party Alignments"
+                text: "User's Party Alignments",
+                fontFamily: "tahoma"
             },
             data: [{
                 type: "pie",
@@ -175,6 +196,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     var elems = document.querySelectorAll('select');
     var instances = M.FormSelect.init(elems);
+
     
   
   });
