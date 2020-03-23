@@ -111,24 +111,32 @@ const setUpQuiz = (data) => {
     quizList.innerHTML = html;
     }
     else {
-        quizList.innerHTML = "<h1 style = 'text-align: center;'> Sign-In or Login to View Quiz!/h1>"
+        quizList.innerHTML = "<h5 style = 'text-align: center;'> Sign-In or Login to View Quiz<h5>"
     }
 };
 
 
-const showResults = (data, quizList, resultsContainer, user) => {
-    var answerContainer = quizList.querySelector('.answers');
+const showResults = (data2, quizList, resultsContainer, user) => {
+    var answerContainer = quizList.querySelectorAll('.answers');
     var numDem = 0;
     var numRepub = 0;
-    data.forEach((doc) => {
+    data2.forEach((doc) => {
         const quiz = doc.data();
         const gName = quiz.gName;
-        const userAnswer = (answerContainer.querySelector('input[name='+gName+']:checked')||{}).value;
-        console.log(userAnswer);
-        if(parseInt(userAnswer, 10) == quiz.D) {
+        var rates = document.getElementsByName(gName);
+        var rate_value;
+        for(var i = 0; i < rates.length; i++){
+             if(rates[i].checked){
+                rate_value = rates[i].value;
+            }
+        }
+        console.log(quiz);
+        //const userAnswer = (answerContainer.querySelectorAll('input[name='+gName+']:checked')||{}).value;
+        console.log(rate_value);
+        if(rate_value == quiz.D) {
             numDem++
         }
-        else if (parseInt(userAnswer, 10)== quiz.R) {
+        else if (rate_value== quiz.R) {
             numRepub++
         }
     });

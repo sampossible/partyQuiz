@@ -25,12 +25,16 @@ auth.onAuthStateChanged(user => {
       db.collection('questions').onSnapshot(snapshot => {
         setUpQuiz(snapshot.docs)
         const document = snapshot.docs;
-      submitButton.addEventListener("click", (e) => {
+        submitButton.addEventListener("click", (e) => {
           e.preventDefault();
           showResults(document, quizList, resultsContainer, user)
           showGraph(user)
-      });
+        })
+      
        
+      });
+      db.collection('questions').onSnapshot(snapshot => {
+        
       });
       setupUI(user)
     } else {
